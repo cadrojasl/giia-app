@@ -49,6 +49,7 @@ import SignUp from "layouts/authentication/sign-up";
 import Icon from "@mui/material/Icon";
 import RemisionForm from "components/MDRemisions/RemisionForm";
 import RemisionQR from "components/MDRemisions/RemisionQR";
+import ProveedorForm from "components/MDRemisions/ProveedoreForm";
 
 const routes = [
   {
@@ -66,6 +67,14 @@ const routes = [
     icon: <Icon fontSize="small">qr_code</Icon>,
     route: "/remision-qr",
     component: <RemisionQR />,
+  },
+  {
+    type: "collapse",
+    name: "Proveedor",
+    key: "Proveedor",
+    icon: <Icon fontSize="small">store</Icon>,
+    route: "/proveedor",
+    component: <ProveedorForm />,
   },
   {
     type: "collapse",

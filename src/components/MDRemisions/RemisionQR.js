@@ -56,8 +56,7 @@ const RemisionQR = () => {
                 Descargar
               </Button>
               <Button
-                variant="outlined"
-                color="secondary"
+                color="primary"
                 onClick={() => navigator.share({ text: remision })}
               >
                 Compartir
