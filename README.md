@@ -225,3 +225,22 @@ Dribbble: <https://dribbble.com/creativetim>
 Google+: <https://plus.google.com/+CreativetimPage>
 
 Instagram: <https://instagram.com/creativetimofficial>
+
+
+## Progressive Web App (PWA)
+
+This app is now installable and works offline as a Progressive Web App.
+
+What’s included:
+- Web App Manifest with icons (public/manifest.json)
+- Service Worker registered in src/index.js and served from public/service-worker.js for offline caching and faster loads
+- Basic offline fallback for SPA navigation and cache strategies for static assets and common CDNs
+
+How to use:
+- Development: run npm start and open http://localhost:3000. Service Worker only fully works on production builds, but registration is present.
+- Production: run npm run build, then serve build/ over HTTPS (service workers require HTTPS in production). For example: npx serve -s build.
+- Install: In supported browsers, you’ll see an “Install app” prompt or a + icon in the address bar. You can also use the browser menu to “Install app”.
+
+Notes:
+- If you deploy the app under a subpath, the Service Worker is registered using PUBLIC_URL to ensure the correct scope.
+- To customize icons or theme color, edit public/manifest.json and public/index.html meta tags.

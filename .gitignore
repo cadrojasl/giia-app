@@ -1,27 +1,74 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
-# dependencies
+commit.sh
+
+# Dependencias
+# Los módulos de Node se pueden regenerar a partir de package.json
 /node_modules
-.DS_Store
+/npm-debug.log
+.npm/
+.yarn/
+.yarn-integrity
+.pnp.*
 
-# testing
-/coverage
+# Build
+# Directorio de salida de la construcción, que se puede regenerar
+build
+dist
+.cache
+.parcel-cache
 
-# production
-/build
-
-# misc
-.DS_Store
+# Archivos de entorno y credenciales sensibles
+# Nunca se deben subir las claves de API, secretos, etc.
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
+.env.production
+.env.development
+.env.staging
 
+# Archivos de sistema y logs
+*.log
+*.log.*
+/temp/
+.DS_Store # Archivos de macOS
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
+lerna-debug.log*
 package-lock.json
 yarn.lock
 
-commit.sh
+# Archivos de IDE - JetBrains
+# Archivos y carpetas generados por WebStorm, IntelliJ, etc.
+# Se recomienda que cada IDE de JetBrains tenga su propio .gitignore interno
+# en el directorio .idea/, pero esto garantiza que se ignoren globalmente.
+.idea/
+.idea
+*.iml
+*.iws
+*.ipr
+*.idea
+
+# Archivos de IDE - Visual Studio Code
+# Directorio para la configuración del espacio de trabajo
+# Puedes ignorar la carpeta completa si no necesitas versionar ninguna de las configuraciones.
+.vscode/
+
+# Archivos de pruebas y depuración
+coverage/
+*.bak
+*.orig
+*.swp
+
+# Archivos generados
+/public/build
+/public/assets
+
+# Archivos de paquetes de React Native (si aplica)
+# ios/build/
+# android/build/
+
