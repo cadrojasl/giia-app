@@ -7,14 +7,12 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import { createProveedor } from "services/api";
-import { hashPassword } from "services/api";
+import { createUsuario, hashPassword } from "services/api";
 
-const ProveedorForm = () => {
+const UsuarioForm = () => {
   const [formData, setFormData] = useState({
-    nit: "",
+    username: "",
     nombre: "",
-    direccion: "",
     correo: "",
     telefono: "",
     contrasena: "",
@@ -43,25 +41,23 @@ const ProveedorForm = () => {
       });
     }
     if (errorMessage) {
-      setErrorMessage(""); // Clear API errors when user types
+      setErrorMessage("");
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.nit.trim()) {
-      newErrors.nit = "El NIT es requerido";
+    if (!formData.username.trim()) {
+      newErrors.username = "El nombre de usuario es requerido";
+    } else if (formData.username.trim().length < 3) {
+      newErrors.username = "El nombre de usuario debe tener al menos 3 caracteres";
     }
 
     if (!formData.nombre.trim()) {
       newErrors.nombre = "El nombre es requerido";
     } else if (formData.nombre.trim().length < 3) {
       newErrors.nombre = "El nombre debe tener al menos 3 caracteres";
-    }
-
-    if (!formData.direccion.trim()) {
-      newErrors.direccion = "La dirección es requerida";
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -102,29 +98,25 @@ const ProveedorForm = () => {
 
     if (validateForm()) {
       const data = {
-        nit: formData.nit,
-        nombreProveedor: formData.nombre,
-        emailProveedor: formData.correo,
+        username: formData.username,
+        nombre: formData.nombre,
+        email: formData.correo,
         telefono: formData.telefono,
-        direccion: formData.direccion,
-        usuario: formData.nombre.toLowerCase().replace(/\s/g, ""), // Generate username
-        nombreUsuario: formData.nombre,
-        emailUsuario: formData.correo, // Use same email for user
         passwordHash: hashPassword(formData.contrasena),
       };
 
       try {
-        await createProveedor(data);
-        setSuccessMessage("¡Proveedor creado exitosamente!");
+        await createUsuario(data);
+        setSuccessMessage("¡Usuario creado exitosamente!");
         setTimeout(() => {
           handleLimpiar();
           setSuccessMessage("");
-          navigate("/proveedores");
+          navigate("/usuarios");
         }, 2000);
       } catch (error) {
-        console.error("Error creando proveedor:", error);
+        console.error("Error creando usuario:", error);
         setErrorMessage(
-          error.response?.data?.message || "Error al crear el proveedor. Intente de nuevo."
+          error.response?.data?.message || "Error al crear el usuario. Intente de nuevo."
         );
       } finally {
         setLoading(false);
@@ -136,9 +128,8 @@ const ProveedorForm = () => {
 
   const handleLimpiar = () => {
     setFormData({
-      nit: "",
+      username: "",
       nombre: "",
-      direccion: "",
       correo: "",
       telefono: "",
       contrasena: "",
@@ -165,10 +156,10 @@ const ProveedorForm = () => {
       <MDBox py={3}>
         <MDBox mb={3} textAlign="center">
           <MDTypography variant="h4" fontWeight="medium">
-            Crear Proveedor
+            Crear Usuario
           </MDTypography>
           <MDTypography variant="body2" color="text" mt={1}>
-            Complete los datos del nuevo proveedor
+            Complete los datos del nuevo usuario
           </MDTypography>
         </MDBox>
 
@@ -188,39 +179,26 @@ const ProveedorForm = () => {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="NIT"
-                name="nit"
-                value={formData.nit}
+                label="Nombre de Usuario"
+                name="username"
+                value={formData.username}
                 onChange={handleChange}
-                error={!!errors.nit}
-                helperText={errors.nit}
-                placeholder="Ej: 900123456-7"
+                error={!!errors.username}
+                helperText={errors.username}
+                placeholder="Ej: usuario123"
                 disabled={loading}
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Nombre del Proveedor"
+                label="Nombre Completo"
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
                 error={!!errors.nombre}
                 helperText={errors.nombre}
                 placeholder="Ingrese el nombre completo"
-                disabled={loading}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Dirección"
-                name="direccion"
-                value={formData.direccion}
-                onChange={handleChange}
-                error={!!errors.direccion}
-                helperText={errors.direccion}
-                placeholder="Calle, carrera, número"
                 disabled={loading}
               />
             </Grid>
@@ -312,7 +290,7 @@ const ProveedorForm = () => {
               size="large"
               disabled={loading}
             >
-              {loading ? "Guardando..." : "Agregar Proveedor"}
+              {loading ? "Guardando..." : "Agregar Usuario"}
             </Button>
           </Box>
         </Box>
@@ -321,4 +299,4 @@ const ProveedorForm = () => {
   );
 };
 
-export default ProveedorForm;
+export default UsuarioForm;

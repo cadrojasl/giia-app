@@ -6,7 +6,6 @@ import {
   FormControlLabel,
   Grid,
   TextField,
-  IconButton,
   Alert,
   Autocomplete,
   CircularProgress,
@@ -18,7 +17,6 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
-import { Delete as DeleteIcon, Add as AddIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -26,27 +24,30 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
-import { createRemision, getProveedores } from "services/api";
+import { createSalida, getProveedores, getMaterialesByProveedor } from "services/api";
 
-const RemisionForm = () => {
+const SalidaAlmacenForm = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    empresa: "",
     proveedorId: null,
     nombreProveedor: "",
     nit: "",
+    direccionProveedor: "",
+    emailProveedor: "",
+    telefonoProveedor: "",
     lugarDespacho: "",
     cliente: "",
     direccion: "",
     ciudad: "",
     fecha: new Date().toISOString().split("T")[0],
     elaboradoPor: "",
-    recibidoPor: "",
-    recibidoSatisfactoriamente: false,
+    entregadoPor: "",
+    entregadoSatisfactoriamente: false,
   });
 
   const [materiales, setMateriales] = useState([]);
-  const [rowId, setRowId] = useState(0);
 
   const [proveedores, setProveedores] = useState([]);
   const [loadingProveedores, setLoadingProveedores] = useState(false);
@@ -73,7 +74,25 @@ const RemisionForm = () => {
     }
   };
 
-  // Manejar cambios en campos del formulario
+  // Fetch materials when provider changes
+  useEffect(() => {
+    if (formData.proveedorId) {
+      const fetchMateriales = async () => {
+        try {
+          const response = await getMaterialesByProveedor(formData.proveedorId);
+          setMateriales(response.data || []);
+        } catch (error) {
+          console.error("Error cargando materiales:", error);
+          setErrorMessage("Error al cargar los materiales del proveedor");
+          setMateriales([]);
+        }
+      };
+      fetchMateriales();
+    } else {
+      setMateriales([]);
+    }
+  }, [formData.proveedorId]);
+
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target;
     setFormData({
@@ -81,20 +100,21 @@ const RemisionForm = () => {
       [name]: type === "checkbox" ? checked : value,
     });
 
-    // Limpiar error del campo
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" });
     }
   };
 
-  // Manejar selección de proveedor
   const handleProveedorChange = (event, newValue) => {
     if (newValue) {
       setFormData({
         ...formData,
         proveedorId: newValue.id,
-        nombreProveedor: newValue.nombre || newValue.nombreProveedor,
+        nombreProveedor: newValue.nombre || newValue.nombreProveedor || "",
         nit: newValue.nit || "",
+        direccionProveedor: newValue.direccion || "",
+        emailProveedor: newValue.emailProveedor || newValue.correo || "",
+        telefonoProveedor: newValue.telefono || "",
       });
       if (errors.proveedorId) {
         setErrors({ ...errors, proveedorId: "" });
@@ -105,37 +125,19 @@ const RemisionForm = () => {
         proveedorId: null,
         nombreProveedor: "",
         nit: "",
+        direccionProveedor: "",
+        emailProveedor: "",
+        telefonoProveedor: "",
       });
     }
   };
 
-  // Agregar nueva fila de material
-  const handleAddMaterial = () => {
-    setMateriales([
-      ...materiales,
-      {
-        id: rowId,
-        material: "",
-        cantidad: "",
-        unidad: "",
-      },
-    ]);
-    setRowId(rowId + 1);
-  };
-
-  // Eliminar material
-  const handleDeleteMaterial = (id) => {
-    setMateriales(materiales.filter((row) => row.id !== id));
-  };
-
-  // Actualizar material
-  const handleMaterialChange = (id, field, value) => {
-    setMateriales(materiales.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
-  };
-
-  // Validar formulario
   const validateForm = () => {
     const newErrors = {};
+
+    if (!formData.empresa.trim()) {
+      newErrors.empresa = "El nombre de la empresa es requerido";
+    }
 
     if (!formData.proveedorId) {
       newErrors.proveedorId = "El proveedor es requerido";
@@ -165,27 +167,18 @@ const RemisionForm = () => {
       newErrors.elaboradoPor = "El campo 'Elaborado por' es requerido";
     }
 
-    if (!formData.recibidoPor.trim()) {
-      newErrors.recibidoPor = "El campo 'Recibido por' es requerido";
+    if (!formData.entregadoPor.trim()) {
+      newErrors.entregadoPor = "El campo 'Entregado por' es requerido";
     }
 
     if (materiales.length === 0) {
-      newErrors.materiales = "Debe agregar al menos un material";
-    } else {
-      // Validar que todos los materiales tengan datos completos
-      const materialesIncompletos = materiales.some(
-        (m) => !m.material.trim() || !m.cantidad || !m.unidad.trim()
-      );
-      if (materialesIncompletos) {
-        newErrors.materiales = "Complete todos los campos de los materiales";
-      }
+      newErrors.materiales = "No hay materiales disponibles para este proveedor";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Enviar formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccessMessage("");
@@ -198,8 +191,8 @@ const RemisionForm = () => {
 
     setLoading(true);
 
-    // Preparar payload para la API
     const payload = {
+      empresa: formData.empresa.trim(),
       proveedorId: formData.proveedorId,
       lugarDespacho: formData.lugarDespacho.trim(),
       cliente: formData.cliente.trim(),
@@ -207,26 +200,26 @@ const RemisionForm = () => {
       ciudad: formData.ciudad.trim(),
       fecha: formData.fecha,
       elaboradoPor: formData.elaboradoPor.trim(),
-      recibidoPor: formData.recibidoPor.trim(),
-      recibidoSatisfactoriamente: formData.recibidoSatisfactoriamente,
+      entregadoPor: formData.entregadoPor.trim(),
+      entregadoSatisfactoriamente: formData.entregadoSatisfactoriamente,
       materiales: materiales.map((m) => ({
-        material: m.material.trim(),
+        material: m.material,
         cantidad: parseFloat(m.cantidad),
-        unidad: m.unidad.trim(),
+        unidad: m.unidad,
       })),
     };
 
     try {
-      const response = await createRemision(payload);
-      console.log("Remisión creada:", response.data);
+      const response = await createSalida(payload);
+      console.log("Salida creada:", response.data);
 
-      setSuccessMessage("¡Remisión creada exitosamente!");
+      setSuccessMessage("¡Salida de almacén creada exitosamente!");
 
       setTimeout(() => {
-        navigate("/remisiones");
+        navigate("/salidas");
       }, 2000);
     } catch (error) {
-      console.error("Error creando remisión:", error);
+      console.error("Error creando salida:", error);
 
       if (error.response) {
         const status = error.response.status;
@@ -239,7 +232,7 @@ const RemisionForm = () => {
         } else if (status === 500) {
           setErrorMessage("Error en el servidor. Intente más tarde");
         } else {
-          setErrorMessage(message || "Error al crear la remisión");
+          setErrorMessage(message || "Error al crear la salida");
         }
       } else if (error.request) {
         setErrorMessage("No se pudo conectar con el servidor");
@@ -251,20 +244,23 @@ const RemisionForm = () => {
     }
   };
 
-  // Limpiar formulario
   const handleLimpiar = () => {
     setFormData({
+      empresa: "",
       proveedorId: null,
       nombreProveedor: "",
       nit: "",
+      direccionProveedor: "",
+      emailProveedor: "",
+      telefonoProveedor: "",
       lugarDespacho: "",
       cliente: "",
       direccion: "",
       ciudad: "",
       fecha: new Date().toISOString().split("T")[0],
       elaboradoPor: "",
-      recibidoPor: "",
-      recibidoSatisfactoriamente: false,
+      entregadoPor: "",
+      entregadoSatisfactoriamente: false,
     });
     setMateriales([]);
     setErrors({});
@@ -278,10 +274,10 @@ const RemisionForm = () => {
       <MDBox py={3}>
         <MDBox mb={3} textAlign="center">
           <MDTypography variant="h4" fontWeight="medium">
-            Crear Remisión
+            Crear Salida de Almacén
           </MDTypography>
           <MDTypography variant="body2" color="text" mt={1}>
-            Complete la información de la remisión
+            Complete la información de la salida
           </MDTypography>
         </MDBox>
 
@@ -297,8 +293,24 @@ const RemisionForm = () => {
         )}
 
         <Box component="form" onSubmit={handleSubmit}>
-          {/* Información del Proveedor */}
+          {/* Nombre de la Empresa */}
           <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Nombre de la Empresa *"
+                name="empresa"
+                value={formData.empresa}
+                onChange={handleChange}
+                error={!!errors.empresa}
+                helperText={errors.empresa}
+                disabled={loading}
+              />
+            </Grid>
+          </Grid>
+
+          {/* Información del Proveedor */}
+          <Grid container spacing={2} mt={2}>
             <Grid item xs={12} md={6}>
               <Autocomplete
                 options={proveedores}
@@ -325,16 +337,61 @@ const RemisionForm = () => {
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="NIT"
-                name="nit"
-                value={formData.nit}
-                disabled
-                helperText="Se completa automáticamente"
-              />
-            </Grid>
+          </Grid>
+
+          {/* Datos completos del Proveedor */}
+          {formData.proveedorId && (
+            <MDBox mt={2}>
+              <MDTypography variant="h6" mb={1}>
+                Datos del Proveedor
+              </MDTypography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Nombre del Proveedor"
+                    value={formData.nombreProveedor}
+                    disabled
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="NIT"
+                    value={formData.nit}
+                    disabled
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Dirección"
+                    value={formData.direccionProveedor}
+                    disabled
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Correo Electrónico"
+                    value={formData.emailProveedor}
+                    disabled
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Teléfono"
+                    value={formData.telefonoProveedor}
+                    disabled
+                  />
+                </Grid>
+              </Grid>
+            </MDBox>
+          )}
+
+          {/* Otros campos */}
+          <Grid container spacing={2} mt={2}>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -401,17 +458,9 @@ const RemisionForm = () => {
 
           {/* Sección de Materiales */}
           <MDBox mt={4}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <MDTypography variant="h6">Materiales</MDTypography>
-              <Button
-                onClick={handleAddMaterial}
-                variant="contained"
-                startIcon={<AddIcon />}
-                disabled={loading}
-              >
-                Agregar Material
-              </Button>
-            </Box>
+            <MDTypography variant="h6" mb={2}>
+              Materiales
+            </MDTypography>
 
             {errors.materiales && (
               <Alert severity="error" sx={{ mb: 2 }}>
@@ -423,70 +472,24 @@ const RemisionForm = () => {
               <Table stickyHeader>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: "bold", width: "40%" }}>Material</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "20%" }}>Cantidad</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "20%" }}>Unidad</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "20%" }} align="center">
-                      Acciones
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: "bold", width: "50%" }}>Material</TableCell>
+                    <TableCell sx={{ fontWeight: "bold", width: "25%" }}>Cantidad</TableCell>
+                    <TableCell sx={{ fontWeight: "bold", width: "25%" }}>Unidad</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {materiales.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} align="center" sx={{ py: 3, color: "text.secondary" }}>
-                        No hay materiales agregados. Haga clic en "Agregar Material" para empezar.
+                      <TableCell colSpan={3} align="center" sx={{ py: 3, color: "text.secondary" }}>
+                        No hay materiales disponibles. Seleccione un proveedor.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    materiales.map((row) => (
-                      <TableRow key={row.id} hover>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={row.material}
-                            onChange={(e) =>
-                              handleMaterialChange(row.id, "material", e.target.value)
-                            }
-                            placeholder="Nombre del material"
-                            size="small"
-                            disabled={loading}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            type="number"
-                            value={row.cantidad}
-                            onChange={(e) =>
-                              handleMaterialChange(row.id, "cantidad", e.target.value)
-                            }
-                            placeholder="0"
-                            size="small"
-                            inputProps={{ min: 0, step: "0.01" }}
-                            disabled={loading}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={row.unidad}
-                            onChange={(e) => handleMaterialChange(row.id, "unidad", e.target.value)}
-                            placeholder="kg, m, unidad"
-                            size="small"
-                            disabled={loading}
-                          />
-                        </TableCell>
-                        <TableCell align="center">
-                          <IconButton
-                            color="error"
-                            onClick={() => handleDeleteMaterial(row.id)}
-                            size="small"
-                            disabled={loading}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
+                    materiales.map((row, index) => (
+                      <TableRow key={index} hover>
+                        <TableCell>{row.material}</TableCell>
+                        <TableCell>{row.cantidad}</TableCell>
+                        <TableCell>{row.unidad}</TableCell>
                       </TableRow>
                     ))
                   )}
@@ -512,12 +515,12 @@ const RemisionForm = () => {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Recibido por *"
-                name="recibidoPor"
-                value={formData.recibidoPor}
+                label="Entregado por *"
+                name="entregadoPor"
+                value={formData.entregadoPor}
                 onChange={handleChange}
-                error={!!errors.recibidoPor}
-                helperText={errors.recibidoPor}
+                error={!!errors.entregadoPor}
+                helperText={errors.entregadoPor}
                 disabled={loading}
               />
             </Grid>
@@ -528,13 +531,13 @@ const RemisionForm = () => {
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={formData.recibidoSatisfactoriamente}
+                  checked={formData.entregadoSatisfactoriamente}
                   onChange={handleChange}
-                  name="recibidoSatisfactoriamente"
+                  name="entregadoSatisfactoriamente"
                   disabled={loading}
                 />
               }
-              label="Recibido satisfactoriamente"
+              label="Entregado satisfactoriamente"
             />
           </Box>
 
@@ -557,7 +560,7 @@ const RemisionForm = () => {
               size="large"
               startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
             >
-              {loading ? "Guardando..." : "Guardar Remisión"}
+              {loading ? "Guardando..." : "Guardar Salida"}
             </Button>
           </Box>
         </Box>
@@ -566,4 +569,4 @@ const RemisionForm = () => {
   );
 };
 
-export default RemisionForm;
+export default SalidaAlmacenForm;

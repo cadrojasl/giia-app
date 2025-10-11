@@ -50,6 +50,9 @@ import Icon from "@mui/material/Icon";
 import RemisionForm from "components/MDRemisions/RemisionForm";
 import RemisionQR from "components/MDRemisions/RemisionQR";
 import ProveedorForm from "components/MDRemisions/ProveedoreForm";
+import UsuarioForm from "components/MDRemisions/UsuarioForm";
+import EntradaAlmacenForm from "components/MDRemisions/EntradaAlmacenForm";
+import SalidaAlmacenForm from "components/MDRemisions/SalidaAlmacenForm";
 
 const routes = [
   {
@@ -60,13 +63,37 @@ const routes = [
     route: "/remision-form",
     component: <RemisionForm />,
   },
+  // {
+  //   type: "collapse",
+  //   name: "Generar QR",
+  //   key: "remision-qr",
+  //   icon: <Icon fontSize="small">qr_code</Icon>,
+  //   route: "/remision-qr",
+  //   component: <RemisionQR />,
+  // },
   {
     type: "collapse",
-    name: "Generar QR",
-    key: "remision-qr",
-    icon: <Icon fontSize="small">qr_code</Icon>,
-    route: "/remision-qr",
-    component: <RemisionQR />,
+    name: "Usuarios",
+    key: "usuarios",
+    icon: <Icon fontSize="small">person</Icon>,
+    route: "/usuarios",
+    component: <UsuarioForm />,
+  },
+  {
+    type: "collapse",
+    name: "Salidas",
+    key: "salidas",
+    icon: <Icon fontSize="small">shopping_cart</Icon>,
+    route: "/salidas",
+    component: <SalidaAlmacenForm />,
+  },
+  {
+    type: "collapse",
+    name: "Entradas",
+    key: "entradas",
+    icon: <Icon fontSize="small">add_shopping_cart</Icon>,
+    route: "/entradas",
+    component: <EntradaAlmacenForm />,
   },
   {
     type: "collapse",
