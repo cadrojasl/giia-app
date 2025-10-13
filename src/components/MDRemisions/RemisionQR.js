@@ -55,10 +55,7 @@ const RemisionQR = () => {
               <Button variant="contained" color="primary" onClick={handleDownload} sx={{ mr: 2 }}>
                 Descargar
               </Button>
-              <Button
-                color="primary"
-                onClick={() => navigator.share({ text: remision })}
-              >
+              <Button color="primary" onClick={() => navigator.share({ text: remision })}>
                 Compartir
               </Button>
             </Box>

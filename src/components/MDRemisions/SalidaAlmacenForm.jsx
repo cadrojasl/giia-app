@@ -355,12 +355,7 @@ const SalidaAlmacenForm = () => {
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="NIT"
-                    value={formData.nit}
-                    disabled
-                  />
+                  <TextField fullWidth label="NIT" value={formData.nit} disabled />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField

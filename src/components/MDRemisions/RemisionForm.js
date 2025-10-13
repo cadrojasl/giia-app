@@ -435,7 +435,8 @@ const RemisionForm = () => {
                   {materiales.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} align="center" sx={{ py: 3, color: "text.secondary" }}>
-                        No hay materiales agregados. Haga clic en "Agregar Material" para empezar.
+                        No hay materiales agregados. Haga clic en &quot;Agregar Material&quot; para
+                        empezar.
                       </TableCell>
                     </TableRow>
                   ) : (

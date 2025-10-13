@@ -1,26 +1,52 @@
 {
-  "short_name": "Material Dashboard",
-  "name": "Material Dashboard 2 React",
+  "name": "GIIA",
+  "short_name": "giia-app",
+  "description": "Gestión Inteligente de Inventarios de Almacenes",
+  "start_url": "/",
+  "scope": "/",
   "icons": [
     {
-      "src": "favicon.png",
-      "sizes": "64x64 32x32 24x24 16x16",
+      "src": "pwa-64x64.png",
+      "sizes": "64x64",
       "type": "image/png"
     },
     {
-      "src": "logo192.png",
-      "type": "image/png",
+      "src": "pwa-192x192.png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "logo512.png",
-      "type": "image/png",
+      "src": "pwa-512x512.png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "type": "image/png"
+    },
+    {
+      "src": "pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "maskable-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "start_url": ".",
+  "screenshots": [
+    {
+      "src": "images/mobile-wide-giia.png",
+      "sizes": "600x1142",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "images/desktop-wide-giia.png",
+      "sizes": "1240x569",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
   "display": "standalone",
   "theme_color": "#1A73E8",
   "background_color": "#ffffff"

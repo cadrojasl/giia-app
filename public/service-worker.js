@@ -13,9 +13,13 @@ const APP_SHELL = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/favicon.png',
-  '/logo192.png',
-  '/logo512.png',
+  '/favicon.ico',
+  '/pwa-64x64.png',
+  '/pwa-192x192.png',
+  '/pwa-512x512.png',
+  '/maskable-icon-512x512.png',
+  '/images/mobile-wide-giia.png',
+  '/images/desktop-wide-giia.png',
 ];
 
 self.addEventListener('install', (event) => {
