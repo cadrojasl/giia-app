@@ -40,6 +40,7 @@ dataManagementApi.interceptors.request.use((config) => {
 // ==================== USUARIOS ====================
 export const login = (data) => usersApi.post("/api/usuarios/login", data);
 export const createUsuario = (data) => usersApi.post("/api/usuarios", data);
+export const getUsuario = (id) => usersApi.get(`/api/usuarios/${id}`);
 
 // ==================== PROVEEDORES ====================
 export const createProveedor = (data) => usersApi.post("/api/proveedores", data);
@@ -80,13 +81,23 @@ export const sseSubscribe = () => {
 };
 
 // ==================== MATERIALES ====================
+export const createMaterial = (data) => materialesApi.post("/api/materiales", data);
 export const getMaterialesByProveedor = (proveedorId) =>
   materialesApi.get(`/api/materiales/proveedor/${proveedorId}`);
 export const getMateriales = () => materialesApi.get("/api/materiales");
+export const deleteMaterial = (id) => materialesApi.delete(`/api/materiales/${id}`);
+export const getMaterialesPorRemision = (id) => remisionApi.get(`/api/remisiones/${id}/materiales`);
+
+export const actualizarEstadoRemision = (id, data) =>
+  remisionApi.put(`/api/remisiones/${id}/estado`, data);
+
+export const incrementarStock = (data) => materialesApi.put("/api/inventario/incrementar", data);
 
 // ==================== ALMACEN ====================
 export const createEntrada = (data) => usersApi.post("/api/entradas", data);
 export const createSalida = (data) => usersApi.post("/api/salidas", data);
+// ==================== CATEGORIA ====================
+export const getCategorias = () => materialesApi.get("/api/categorias");
 
 // ==================== UTILIDADES ====================
 // Función para manejar errores de manera consistente

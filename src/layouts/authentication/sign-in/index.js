@@ -61,11 +61,11 @@ function Basic() {
       }
       // Redirigir según el rol
       if (rol === 0) {
-        navigate("/proveedor"); // Vista para proveedor
+        navigate("/usuarios"); // Vista para proveedor
       } else if (rol === 1) {
-        navigate("/admin"); // Vista para admin
+        navigate("/remision-form"); // Vista para admin
       } else {
-        navigate("/dashboard"); // Vista genérica
+        navigate("/remision-form"); // Vista genérica
       }
     } catch (error) {
       console.error("Login failed:", error);
@@ -120,7 +120,7 @@ function Basic() {
             <MDBox mb={2}>
               <MDInput
                 //type="email"
-                label="Email"
+                label="Usuario"
                 fullWidth
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

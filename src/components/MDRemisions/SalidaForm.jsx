@@ -16,29 +16,27 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
-import { getProveedor, getMateriales, createRemision, generarQR } from "services/api";
+import { getUsuario, getMateriales, createRemision } from "services/api";
 
-const RemisionForm = () => {
+const SalidaForm = () => {
   const navigate = useNavigate();
-  const [proveedor, setProveedor] = useState(null);
+  const [usuario, setUsuario] = useState(null);
   const [materiales, setMateriales] = useState([]);
   const [materialSeleccionado, setMaterialSeleccionado] = useState(null);
   const [cantidad, setCantidad] = useState("");
   const [observaciones, setObservaciones] = useState("");
-  const [remisionItems, setRemisionItems] = useState([]);
+  const [salidaItems, setSalidaItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const rol = parseInt(localStorage.getItem("userRole"));
-  const user = parseInt(localStorage.getItem("usuarioId"));
-  const proveedorID = parseInt(localStorage.getItem("proveedorId"));
+  const usuarioId = parseInt(localStorage.getItem("usuarioId"));
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const proveedorRes = await getProveedor(proveedorID);
-        setProveedor(proveedorRes.data);
+        const usuarioRes = await getUsuario(usuarioId);
+        setUsuario(usuarioRes.data);
 
         const materialesRes = await getMateriales();
         setMateriales(materialesRes.data);
@@ -48,7 +46,7 @@ const RemisionForm = () => {
     };
 
     fetchData();
-  }, [rol]);
+  }, [usuarioId]);
 
   const handleAddItem = () => {
     if (!materialSeleccionado || !cantidad) {
@@ -56,8 +54,8 @@ const RemisionForm = () => {
       return;
     }
 
-    setRemisionItems([
-      ...remisionItems,
+    setSalidaItems([
+      ...salidaItems,
       {
         id: materialSeleccionado.id,
         nombre: materialSeleccionado.nombre,
@@ -77,40 +75,29 @@ const RemisionForm = () => {
     setSuccessMessage("");
 
     try {
-      const remisionPayload = {
-        proveedorId: proveedor.id,
-        observaciones: observaciones,
-        usuarioId: user,
-        tipo: `0`,
-        materiales: remisionItems.map((item) => ({
+      const salidaPayload = {
+        tipo: `1`,
+        usuarioId: usuario.id,
+        observaciones,
+        materiales: salidaItems.map((item) => ({
           materialId: item.id,
           cantidad: Number(item.cantidad),
         })),
-        // materiales: [
-        //   {
-        //     materialId: 1,
-        //     cantidad: 9,
-        //   },
-        //   {
-        //     materialId: 2,
-        //     cantidad: 2,
-        //   },
-        // ],
       };
 
-      const res = await createRemision(remisionPayload);
-      const remisionId = res.data.id;
+      const res = await createRemision(salidaPayload);
+      const salidaId = res.data.id;
 
-      const qrUrl = `http://giia-backend.eastus.cloudapp.azure.com:8082/api/remisiones/qr/${remisionId}`;
+      const qrUrl = `http://giia-backend.eastus.cloudapp.azure.com:8082/api/remisiones/qr/${salidaId}`;
       setTimeout(() => {
         window.open(qrUrl, "_blank");
-      }, 1000);
+      }, 2000);
 
-      setSuccessMessage("Remisión creada exitosamente.");
-      setRemisionItems([]);
+      setSuccessMessage("Salida registrada exitosamente.");
+      setSalidaItems([]);
       setObservaciones("");
     } catch (error) {
-      setErrorMessage("Error al generar la remisión.");
+      setErrorMessage("Error al registrar la salida.");
     } finally {
       setLoading(false);
     }
@@ -121,15 +108,15 @@ const RemisionForm = () => {
       <DashboardNavbar />
       <MDBox py={3}>
         <MDTypography variant="h4" textAlign="center" mb={2}>
-          Crear Remisión
+          Registrar Salida
         </MDTypography>
 
-        {proveedor && (
+        {usuario && (
           <Box mb={2}>
-            <Typography variant="subtitle1">Proveedor:</Typography>
-            <Typography variant="body1">{proveedor.nombre}</Typography>
+            <Typography variant="subtitle1">Usuario:</Typography>
+            <Typography variant="body1">{usuario.nombre}</Typography>
             <Typography variant="body2" color="text.secondary">
-              {proveedor.email} | {proveedor.telefono}
+              {usuario.email} | {usuario.cargo}
             </Typography>
           </Box>
         )}
@@ -187,10 +174,10 @@ const RemisionForm = () => {
 
             <Grid item xs={12}>
               <Typography variant="h6">Materiales agregados:</Typography>
-              {remisionItems.length === 0 ? (
+              {salidaItems.length === 0 ? (
                 <Typography color="text.secondary">No hay materiales aún.</Typography>
               ) : (
-                remisionItems.map((item, index) => (
+                salidaItems.map((item, index) => (
                   <Box key={index} display="flex" justifyContent="space-between" mb={1}>
                     <Typography>
                       {item.nombre} - {item.cantidad}
@@ -202,7 +189,7 @@ const RemisionForm = () => {
 
             <Grid item xs={12} textAlign="right">
               <Button type="submit" variant="contained" color="primary" disabled={loading}>
-                {loading ? "Generando..." : "Generar Remisión y QR"}
+                {loading ? "Generando..." : "Registrar Salida y QR"}
               </Button>
             </Grid>
           </Grid>
@@ -212,4 +199,4 @@ const RemisionForm = () => {
   );
 };
 
-export default RemisionForm;
+export default SalidaForm;

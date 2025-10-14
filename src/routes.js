@@ -54,6 +54,10 @@ import UsuarioForm from "components/MDRemisions/UsuarioForm";
 import EntradaAlmacenForm from "components/MDRemisions/EntradaAlmacenForm";
 import SalidaAlmacenForm from "components/MDRemisions/SalidaAlmacenForm";
 import LeerRemision from "components/MDRemisions/LeerRemision";
+import ListaProveedores from "components/MDRemisions/ListaProveedores";
+import SalidaForm from "components/MDRemisions/SalidaForm";
+import ListaMateriales from "components/MDRemisions/ListaMateriales";
+import CrearMaterial from "components/MDRemisions/CrearMaterial";
 
 const routes = [
   {
@@ -86,23 +90,39 @@ const routes = [
     key: "salidas",
     icon: <Icon fontSize="small">shopping_cart</Icon>,
     route: "/salidas",
-    component: <SalidaAlmacenForm />,
+    component: <SalidaForm />,
   },
-  {
-    type: "collapse",
-    name: "Entradas",
-    key: "entradas",
-    icon: <Icon fontSize="small">add_shopping_cart</Icon>,
-    route: "/entradas",
-    component: <EntradaAlmacenForm />,
-  },
+  // {
+  //   type: "collapse",
+  //   name: "Entradas",
+  //   key: "entradas",
+  //   icon: <Icon fontSize="small">add_shopping_cart</Icon>,
+  //   route: "/entradas",
+  //   component: <EntradaAlmacenForm />,
+  // },
   {
     type: "collapse",
     name: "Proveedor",
     key: "Proveedor",
     icon: <Icon fontSize="small">store</Icon>,
     route: "/proveedor",
-    component: <ProveedorForm />,
+    component: <ListaProveedores />,
+  },
+  {
+    type: "collapse",
+    name: "Lista Materiales",
+    key: "ListaMateriales",
+    icon: <Icon fontSize="small">apps</Icon>,
+    route: "/listamateriales",
+    component: <ListaMateriales />,
+  },
+  {
+    type: "collapse",
+    name: "Materiales",
+    key: "Materiales",
+    icon: <Icon fontSize="small">app_registration</Icon>,
+    route: "/materiales",
+    component: <CrearMaterial />,
   },
   {
     type: "collapse",
