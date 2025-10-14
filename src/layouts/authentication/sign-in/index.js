@@ -41,20 +41,35 @@ function Basic() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const response = await login({
         user: email,
         password: hashPassword(password),
       });
-      localStorage.setItem("authToken", response.data.token);
+      const { signIn, rol, token, idUsuario, idProvedor } = response.data;
+      if (!signIn) {
+        setError("Credenciales inválidas o usuario no autorizado.");
+        return;
+      }
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("userRole", rol);
+
+      localStorage.setItem("usuarioId", idUsuario);
+      localStorage.setItem("proveedorId", idProvedor);
       if (rememberMe) {
         localStorage.setItem("rememberedEmail", email);
       }
-      navigate("/dashboard");
+      // Redirigir según el rol
+      if (rol === 0) {
+        navigate("/proveedor"); // Vista para proveedor
+      } else if (rol === 1) {
+        navigate("/admin"); // Vista para admin
+      } else {
+        navigate("/dashboard"); // Vista genérica
+      }
     } catch (error) {
       console.error("Login failed:", error);
-      setError(error.response?.data?.message || "Invalid credentials. Please try again.");
+      setError(error.response?.data?.message || "Error de conexión o credenciales inválidas.");
     } finally {
       setLoading(false);
     }

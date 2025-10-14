@@ -2,23 +2,13 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
-  Checkbox,
-  FormControlLabel,
   Grid,
   TextField,
-  IconButton,
   Alert,
   Autocomplete,
   CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
+  Typography,
 } from "@mui/material";
-import { Delete as DeleteIcon, Add as AddIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -26,541 +16,193 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
-import { createRemision, getProveedores } from "services/api";
+import { getProveedor, getMateriales, createRemision, generarQR } from "services/api";
 
 const RemisionForm = () => {
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    proveedorId: null,
-    nombreProveedor: "",
-    nit: "",
-    lugarDespacho: "",
-    cliente: "",
-    direccion: "",
-    ciudad: "",
-    fecha: new Date().toISOString().split("T")[0],
-    elaboradoPor: "",
-    recibidoPor: "",
-    recibidoSatisfactoriamente: false,
-  });
-
+  const [proveedor, setProveedor] = useState(null);
   const [materiales, setMateriales] = useState([]);
-  const [rowId, setRowId] = useState(0);
-
-  const [proveedores, setProveedores] = useState([]);
-  const [loadingProveedores, setLoadingProveedores] = useState(false);
-
-  const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [materialSeleccionado, setMaterialSeleccionado] = useState(null);
+  const [cantidad, setCantidad] = useState("");
+  const [observaciones, setObservaciones] = useState("");
+  const [remisionItems, setRemisionItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const rol = parseInt(localStorage.getItem("userRole"));
+  const user = parseInt(localStorage.getItem("usuarioId"));
+  const proveedorID = parseInt(localStorage.getItem("proveedorId"));
 
   useEffect(() => {
-    loadProveedores();
-  }, []);
+    const fetchData = async () => {
+      try {
+        const proveedorRes = await getProveedor(proveedorID);
+        setProveedor(proveedorRes.data);
 
-  const loadProveedores = async () => {
-    setLoadingProveedores(true);
-    try {
-      const response = await getProveedores();
-      setProveedores(response.data || []);
-    } catch (error) {
-      console.error("Error cargando proveedores:", error);
-      setErrorMessage("Error al cargar la lista de proveedores");
-    } finally {
-      setLoadingProveedores(false);
-    }
-  };
-
-  // Manejar cambios en campos del formulario
-  const handleChange = (e) => {
-    const { name, value, checked, type } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-
-    // Limpiar error del campo
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
-    }
-  };
-
-  // Manejar selección de proveedor
-  const handleProveedorChange = (event, newValue) => {
-    if (newValue) {
-      setFormData({
-        ...formData,
-        proveedorId: newValue.id,
-        nombreProveedor: newValue.nombre || newValue.nombreProveedor,
-        nit: newValue.nit || "",
-      });
-      if (errors.proveedorId) {
-        setErrors({ ...errors, proveedorId: "" });
+        const materialesRes = await getMateriales();
+        setMateriales(materialesRes.data);
+      } catch (error) {
+        setErrorMessage("Error al cargar datos.");
       }
-    } else {
-      setFormData({
-        ...formData,
-        proveedorId: null,
-        nombreProveedor: "",
-        nit: "",
-      });
-    }
-  };
+    };
 
-  // Agregar nueva fila de material
-  const handleAddMaterial = () => {
-    setMateriales([
-      ...materiales,
-      {
-        id: rowId,
-        material: "",
-        cantidad: "",
-        unidad: "",
-      },
-    ]);
-    setRowId(rowId + 1);
-  };
+    fetchData();
+  }, [rol]);
 
-  // Eliminar material
-  const handleDeleteMaterial = (id) => {
-    setMateriales(materiales.filter((row) => row.id !== id));
-  };
-
-  // Actualizar material
-  const handleMaterialChange = (id, field, value) => {
-    setMateriales(materiales.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
-  };
-
-  // Validar formulario
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.proveedorId) {
-      newErrors.proveedorId = "El proveedor es requerido";
-    }
-
-    if (!formData.lugarDespacho.trim()) {
-      newErrors.lugarDespacho = "El lugar de despacho es requerido";
-    }
-
-    if (!formData.cliente.trim()) {
-      newErrors.cliente = "El cliente es requerido";
-    }
-
-    if (!formData.direccion.trim()) {
-      newErrors.direccion = "La dirección es requerida";
-    }
-
-    if (!formData.ciudad.trim()) {
-      newErrors.ciudad = "La ciudad es requerida";
-    }
-
-    if (!formData.fecha) {
-      newErrors.fecha = "La fecha es requerida";
-    }
-
-    if (!formData.elaboradoPor.trim()) {
-      newErrors.elaboradoPor = "El campo 'Elaborado por' es requerido";
-    }
-
-    if (!formData.recibidoPor.trim()) {
-      newErrors.recibidoPor = "El campo 'Recibido por' es requerido";
-    }
-
-    if (materiales.length === 0) {
-      newErrors.materiales = "Debe agregar al menos un material";
-    } else {
-      // Validar que todos los materiales tengan datos completos
-      const materialesIncompletos = materiales.some(
-        (m) => !m.material.trim() || !m.cantidad || !m.unidad.trim()
-      );
-      if (materialesIncompletos) {
-        newErrors.materiales = "Complete todos los campos de los materiales";
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Enviar formulario
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSuccessMessage("");
-    setErrorMessage("");
-
-    if (!validateForm()) {
-      setErrorMessage("Por favor corrija los errores en el formulario");
+  const handleAddItem = () => {
+    if (!materialSeleccionado || !cantidad) {
+      setErrorMessage("Completa todos los campos del material.");
       return;
     }
 
-    setLoading(true);
+    setRemisionItems([
+      ...remisionItems,
+      {
+        id: materialSeleccionado.id,
+        //nombre: materialSeleccionado.nombre,
+        cantidad,
+      },
+    ]);
 
-    // Preparar payload para la API
-    const payload = {
-      proveedorId: formData.proveedorId,
-      lugarDespacho: formData.lugarDespacho.trim(),
-      cliente: formData.cliente.trim(),
-      direccion: formData.direccion.trim(),
-      ciudad: formData.ciudad.trim(),
-      fecha: formData.fecha,
-      elaboradoPor: formData.elaboradoPor.trim(),
-      recibidoPor: formData.recibidoPor.trim(),
-      recibidoSatisfactoriamente: formData.recibidoSatisfactoriamente,
-      materiales: materiales.map((m) => ({
-        material: m.material.trim(),
-        cantidad: parseFloat(m.cantidad),
-        unidad: m.unidad.trim(),
-      })),
-    };
+    setMaterialSeleccionado(null);
+    setCantidad("");
+    setErrorMessage("");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
 
     try {
-      const response = await createRemision(payload);
-      console.log("Remisión creada:", response.data);
+      const remisionPayload = {
+        proveedorId: proveedor.id,
+        observaciones: observaciones,
+        usuarioId: user,
+        tipo: `0`,
+        materiales: remisionItems,
+        // materiales: [
+        //   {
+        //     materialId: 1,
+        //     cantidad: 9,
+        //   },
+        //   {
+        //     materialId: 2,
+        //     cantidad: 2,
+        //   },
+        // ],
+      };
 
-      setSuccessMessage("¡Remisión creada exitosamente!");
+      const res = await createRemision(remisionPayload);
+      const remisionId = res.data.id;
 
+      const qrUrl = `http://giia-backend.eastus.cloudapp.azure.com:8082/api/remisiones/qr/${remisionId}`;
       setTimeout(() => {
-        navigate("/remisiones");
-      }, 2000);
+        window.open(qrUrl, "_blank");
+      }, 1000);
+
+      setSuccessMessage("Remisión creada exitosamente.");
+      setRemisionItems([]);
+      setObservaciones("");
     } catch (error) {
-      console.error("Error creando remisión:", error);
-
-      if (error.response) {
-        const status = error.response.status;
-        const message = error.response.data?.message || error.response.data?.error;
-
-        if (status === 400) {
-          setErrorMessage(message || "Datos inválidos. Verifique la información");
-        } else if (status === 404) {
-          setErrorMessage("Proveedor no encontrado");
-        } else if (status === 500) {
-          setErrorMessage("Error en el servidor. Intente más tarde");
-        } else {
-          setErrorMessage(message || "Error al crear la remisión");
-        }
-      } else if (error.request) {
-        setErrorMessage("No se pudo conectar con el servidor");
-      } else {
-        setErrorMessage("Error inesperado. Intente de nuevo");
-      }
+      setErrorMessage("Error al generar la remisión.");
     } finally {
       setLoading(false);
     }
-  };
-
-  // Limpiar formulario
-  const handleLimpiar = () => {
-    setFormData({
-      proveedorId: null,
-      nombreProveedor: "",
-      nit: "",
-      lugarDespacho: "",
-      cliente: "",
-      direccion: "",
-      ciudad: "",
-      fecha: new Date().toISOString().split("T")[0],
-      elaboradoPor: "",
-      recibidoPor: "",
-      recibidoSatisfactoriamente: false,
-    });
-    setMateriales([]);
-    setErrors({});
-    setSuccessMessage("");
-    setErrorMessage("");
   };
 
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        <MDBox mb={3} textAlign="center">
-          <MDTypography variant="h4" fontWeight="medium">
-            Crear Remisión
-          </MDTypography>
-          <MDTypography variant="body2" color="text" mt={1}>
-            Complete la información de la remisión
-          </MDTypography>
-        </MDBox>
+        <MDTypography variant="h4" textAlign="center" mb={2}>
+          Crear Remisión
+        </MDTypography>
 
-        {successMessage && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            {successMessage}
+        {proveedor && (
+          <Box mb={2}>
+            <Typography variant="subtitle1">Proveedor:</Typography>
+            <Typography variant="body1">{proveedor.nombre}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {proveedor.email} | {proveedor.telefono}
+            </Typography>
+          </Box>
+        )}
+
+        {errorMessage && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errorMessage}
           </Alert>
         )}
-        {errorMessage && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {errorMessage}
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {successMessage}
           </Alert>
         )}
 
         <Box component="form" onSubmit={handleSubmit}>
-          {/* Información del Proveedor */}
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <Autocomplete
-                options={proveedores}
-                getOptionLabel={(option) => option.nombre || option.nombreProveedor || ""}
-                loading={loadingProveedores}
-                onChange={handleProveedorChange}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Proveedor *"
-                    error={!!errors.proveedorId}
-                    helperText={errors.proveedorId}
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {loadingProveedores ? <CircularProgress size={20} /> : null}
-                          {params.InputProps.endAdornment}
-                        </>
-                      ),
-                    }}
-                  />
-                )}
+                options={materiales}
+                getOptionLabel={(option) => option.nombre}
+                value={materialSeleccionado}
+                onChange={(e, value) => setMaterialSeleccionado(value)}
+                renderInput={(params) => <TextField {...params} label="Material" fullWidth />}
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={6} md={3}>
               <TextField
+                label="Cantidad"
+                type="number"
                 fullWidth
-                label="NIT"
-                name="nit"
-                value={formData.nit}
-                disabled
-                helperText="Se completa automáticamente"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Lugar de Despacho *"
-                name="lugarDespacho"
-                value={formData.lugarDespacho}
-                onChange={handleChange}
-                error={!!errors.lugarDespacho}
-                helperText={errors.lugarDespacho}
+                value={cantidad}
+                onChange={(e) => setCantidad(e.target.value)}
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Cliente *"
-                name="cliente"
-                value={formData.cliente}
-                onChange={handleChange}
-                error={!!errors.cliente}
-                helperText={errors.cliente}
-                disabled={loading}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Dirección *"
-                name="direccion"
-                value={formData.direccion}
-                onChange={handleChange}
-                error={!!errors.direccion}
-                helperText={errors.direccion}
-                disabled={loading}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Ciudad *"
-                name="ciudad"
-                value={formData.ciudad}
-                onChange={handleChange}
-                error={!!errors.ciudad}
-                helperText={errors.ciudad}
-                disabled={loading}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                label="Fecha *"
-                name="fecha"
-                value={formData.fecha}
-                onChange={handleChange}
-                error={!!errors.fecha}
-                helperText={errors.fecha}
-                disabled={loading}
-              />
-            </Grid>
-          </Grid>
-
-          {/* Sección de Materiales */}
-          <MDBox mt={4}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <MDTypography variant="h6">Materiales</MDTypography>
-              <Button
-                onClick={handleAddMaterial}
-                variant="contained"
-                startIcon={<AddIcon />}
-                disabled={loading}
-              >
+            <Grid item xs={12}>
+              <Button onClick={handleAddItem} disabled={loading}>
                 Agregar Material
               </Button>
-            </Box>
+            </Grid>
 
-            {errors.materiales && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {errors.materiales}
-              </Alert>
-            )}
-
-            <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: "bold", width: "40%" }}>Material</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "20%" }}>Cantidad</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "20%" }}>Unidad</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "20%" }} align="center">
-                      Acciones
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {materiales.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} align="center" sx={{ py: 3, color: "text.secondary" }}>
-                        No hay materiales agregados. Haga clic en &quot;Agregar Material&quot; para
-                        empezar.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    materiales.map((row) => (
-                      <TableRow key={row.id} hover>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={row.material}
-                            onChange={(e) =>
-                              handleMaterialChange(row.id, "material", e.target.value)
-                            }
-                            placeholder="Nombre del material"
-                            size="small"
-                            disabled={loading}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            type="number"
-                            value={row.cantidad}
-                            onChange={(e) =>
-                              handleMaterialChange(row.id, "cantidad", e.target.value)
-                            }
-                            placeholder="0"
-                            size="small"
-                            inputProps={{ min: 0, step: "0.01" }}
-                            disabled={loading}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            fullWidth
-                            value={row.unidad}
-                            onChange={(e) => handleMaterialChange(row.id, "unidad", e.target.value)}
-                            placeholder="kg, m, unidad"
-                            size="small"
-                            disabled={loading}
-                          />
-                        </TableCell>
-                        <TableCell align="center">
-                          <IconButton
-                            color="error"
-                            onClick={() => handleDeleteMaterial(row.id)}
-                            size="small"
-                            disabled={loading}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </MDBox>
-
-          {/* Información de Responsables */}
-          <Grid container spacing={2} mt={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <TextField
+                label="Observaciones"
                 fullWidth
-                label="Elaborado por *"
-                name="elaboradoPor"
-                value={formData.elaboradoPor}
-                onChange={handleChange}
-                error={!!errors.elaboradoPor}
-                helperText={errors.elaboradoPor}
+                multiline
+                rows={3}
+                value={observaciones}
+                onChange={(e) => setObservaciones(e.target.value)}
                 disabled={loading}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Recibido por *"
-                name="recibidoPor"
-                value={formData.recibidoPor}
-                onChange={handleChange}
-                error={!!errors.recibidoPor}
-                helperText={errors.recibidoPor}
-                disabled={loading}
-              />
+
+            <Grid item xs={12}>
+              <Typography variant="h6">Materiales agregados:</Typography>
+              {remisionItems.length === 0 ? (
+                <Typography color="text.secondary">No hay materiales aún.</Typography>
+              ) : (
+                remisionItems.map((item, index) => (
+                  <Box key={index} display="flex" justifyContent="space-between" mb={1}>
+                    <Typography>
+                      {item.nombre} - {item.cantidad}
+                    </Typography>
+                  </Box>
+                ))
+              )}
+            </Grid>
+
+            <Grid item xs={12} textAlign="right">
+              <Button type="submit" variant="contained" color="primary" disabled={loading}>
+                {loading ? "Generando..." : "Generar Remisión y QR"}
+              </Button>
             </Grid>
           </Grid>
-
-          {/* Checkbox de confirmación */}
-          <Box mt={2}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={formData.recibidoSatisfactoriamente}
-                  onChange={handleChange}
-                  name="recibidoSatisfactoriamente"
-                  disabled={loading}
-                />
-              }
-              label="Recibido satisfactoriamente"
-            />
-          </Box>
-
-          {/* Botones de acción */}
-          <Box mt={3} display="flex" gap={2} justifyContent="flex-end">
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={handleLimpiar}
-              disabled={loading}
-              size="large"
-            >
-              Limpiar
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={loading}
-              size="large"
-              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
-            >
-              {loading ? "Guardando..." : "Guardar Remisión"}
-            </Button>
-          </Box>
         </Box>
       </MDBox>
     </DashboardLayout>

@@ -76,7 +76,7 @@ const UsuarioForm = () => {
 
     if (!formData.contrasena) {
       newErrors.contrasena = "La contraseña es requerida";
-    } else if (formData.contrasena.length < 6) {
+    } else if (formData.contrasena.length < 4) {
       newErrors.contrasena = "La contraseña debe tener al menos 6 caracteres";
     }
 
@@ -98,10 +98,13 @@ const UsuarioForm = () => {
 
     if (validateForm()) {
       const data = {
-        username: formData.username,
+        usuario: formData.username,
         nombre: formData.nombre,
         email: formData.correo,
         telefono: formData.telefono,
+        rolId: `1`,
+        fechaCreacion: new Date().toISOString().replace(/\.\d{3}Z$/, ""),
+        activo: true,
         passwordHash: hashPassword(formData.contrasena),
       };
 

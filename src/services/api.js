@@ -6,6 +6,15 @@ const usersApi = axios.create({
   baseURL: process.env.REACT_APP_API_USERS_URL,
   headers: { "Content-Type": "application/json" },
 });
+const remisionApi = axios.create({
+  baseURL: process.env.REACT_APP_API_REMISIONES,
+  headers: { "Content-Type": "application/json" },
+});
+
+const materialesApi = axios.create({
+  baseURL: process.env.REACT_APP_API_MATERIALES,
+  headers: { "Content-Type": "application/json" },
+});
 
 const dataManagementApi = axios.create({
   baseURL: process.env.REACT_APP_API_DATA_MANAGEMENT_URL,
@@ -38,13 +47,23 @@ export const getProveedores = () => usersApi.get("/api/proveedores");
 export const getProveedor = (id) => usersApi.get(`/api/proveedores/${id}`);
 export const updateProveedor = (id, data) => usersApi.put(`/api/proveedores/${id}`, data);
 export const deleteProveedor = (id) => usersApi.delete(`/api/proveedores/${id}`);
+export const getProveedorById = (proveedorId) => usersApi.get(`/api/proveedores/${proveedorId}`);
 
 // ==================== REMISIONES ====================
-export const createRemision = (data) => usersApi.post("/api/remisiones", data);
-export const getRemisiones = () => usersApi.get("/api/remisiones");
-export const getRemision = (id) => usersApi.get(`/api/remisiones/${id}`);
-export const updateRemision = (id, data) => usersApi.put(`/api/remisiones/${id}`, data);
-export const deleteRemision = (id) => usersApi.delete(`/api/remisiones/${id}`);
+export const createRemision = (data) => remisionApi.post("/api/remisiones", data);
+export const leerRemision = (formData) => {
+  return remisionApi.post("/api/remisiones/leer", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const getRemisiones = () => remisionApi.get("/api/remisiones");
+export const getRemision = (id) => remisionApi.get(`/api/remisiones/${id}`);
+export const updateRemision = (id, data) => remisionApi.put(`/api/remisiones/${id}`, data);
+export const deleteRemision = (id) => remisionApi.delete(`/api/remisiones/${id}`);
+export const generarQR = (id) => remisionApi.get(`/api/remisiones/qr/${id}`);
 
 // Filtrar remisiones por proveedor
 export const getRemisionesByProveedor = (proveedorId) =>
@@ -62,7 +81,8 @@ export const sseSubscribe = () => {
 
 // ==================== MATERIALES ====================
 export const getMaterialesByProveedor = (proveedorId) =>
-  usersApi.get(`/api/materiales/proveedor/${proveedorId}`);
+  materialesApi.get(`/api/materiales/proveedor/${proveedorId}`);
+export const getMateriales = () => materialesApi.get("/api/materiales");
 
 // ==================== ALMACEN ====================
 export const createEntrada = (data) => usersApi.post("/api/entradas", data);
