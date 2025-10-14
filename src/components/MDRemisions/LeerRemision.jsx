@@ -15,12 +15,16 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 import {
   leerRemision,
   getMaterialesPorRemision,
   actualizarEstadoRemision,
   incrementarStock,
+  decrementarStock,
+  getUsuario,
 } from "services/api";
 
 const LeerRemisionConEstado = () => {
@@ -85,7 +89,39 @@ const LeerRemisionConEstado = () => {
           materialId: mat.materialId,
           cantidad: mat.cantidad,
         }));
-        await incrementarStock(x);
+        if (remisionData.tipo === "false") {
+          await incrementarStock(stockPayload);
+        } else {
+          await decrementarStock(stockPayload);
+        }
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text("Informe de Remisión", 14, 20);
+
+        doc.setFontSize(12);
+        doc.text(`ID Remisión: ${remisionId}`, 14, 30);
+        doc.text(`Tipo: ${remisionData.tipo === 1 ? "Salida" : "Entrada"}`, 14, 38);
+        doc.text(`Fecha: ${new Date().toLocaleString()}`, 14, 46);
+        doc.text(`Observaciones: ${observaciones || "Ninguna"}`, 14, 54);
+
+        autoTable(doc, {
+          startY: 64,
+          head: [["Material ID", "Cantidad"]],
+          body: materiales.map((mat) => [mat.materialId, mat.cantidad]),
+        });
+
+        const user = parseInt(localStorage.getItem("usuarioId"));
+        let usuarioNombre = "Usuario";
+
+        try {
+          const usuarioRes = await getUsuario(user);
+          usuarioNombre = usuarioRes.data?.nombre || "Usuario";
+        } catch (error) {
+          console.warn("No se pudo obtener el nombre del usuario.");
+        }
+        doc.text(`\n\nAceptado por: ${usuarioNombre}`, 14, doc.lastAutoTable.finalY + 20);
+
+        doc.save(`remision_${remisionId}.pdf`);
       }
 
       setSuccessMessage("Estado actualizado correctamente.");
