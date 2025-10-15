@@ -19,7 +19,7 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
 
-import { getStock } from "services/api";
+import { getStock, getMaterial } from "services/api";
 
 const Inventario = () => {
   const [stock, setStock] = useState([]);
@@ -30,7 +30,18 @@ const Inventario = () => {
     setLoading(true);
     try {
       const res = await getStock();
-      setStock(res.data);
+      const itemsList = res.data;
+
+      // 1. Por cada elemento, consumir la API que trae el detalle.
+      const detailedItemsPromises = itemsList.map(async (item) => {
+        const detailResponse = await getMaterial(item.materialId);
+        const itemDetail = detailResponse.data;
+        // Combinar la información del detalle con el objeto original.
+        return { ...item, ...itemDetail };
+      });
+      // Esperar a que todas las promesas se resuelvan.
+      const detailedItems = await Promise.all(detailedItemsPromises);
+      setStock(detailedItems);
     } catch (error) {
       setErrorMessage("Error al cargar stock.");
     } finally {
@@ -60,9 +71,10 @@ const Inventario = () => {
           <DataTable
             table={{
               columns: [
-                { Header: "Id", accessor: "materialId", width: "20%" },
-                { Header: "Stock", accessor: "cantidadActual", width: "20%" },
-                { Header: "Minimo", accessor: "stockMinimo", width: "20%" },
+                { Header: "Id", accessor: "materialId", width: "10%" },
+                { Header: "Material", accessor: "nombre", width: "40%" },
+                { Header: "Stock", accessor: "cantidadActual", width: "10%" },
+                { Header: "Minimo", accessor: "stockMinimo", width: "10%" },
                 { Header: "Ubicacion", accessor: "ubicacion" },
               ],
               rows: stock,

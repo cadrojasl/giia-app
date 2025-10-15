@@ -181,10 +181,10 @@ const LeerRemisionConEstado = () => {
                         <strong>ID:</strong> {remisionData.id}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Tipo:</strong> {remisionData.tipo === 1 ? 'Salida' : 'Entrada'}
+                        <strong>Tipo:</strong> {remisionData.tipo === 1 ? "Salida" : "Entrada"}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Estado:</strong> {remisionData.estado || 'N/A'}
+                        <strong>Estado:</strong> {remisionData.estado || "N/A"}
                       </Typography>
                       <Typography variant="body2">
                         <strong>Usuario ID:</strong> {remisionData.usuarioId}
@@ -197,13 +197,13 @@ const LeerRemisionConEstado = () => {
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="body2">
-                        <strong>Fecha:</strong>{' '}
+                        <strong>Fecha:</strong>{" "}
                         {remisionData.fechaCreacion
                           ? new Date(remisionData.fechaCreacion).toLocaleString()
-                          : 'No disponible'}
+                          : "No disponible"}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Observaciones:</strong> {remisionData.observaciones || 'Ninguna'}
+                        <strong>Observaciones:</strong> {remisionData.observaciones || "Ninguna"}
                       </Typography>
                     </Grid>
                   </Grid>

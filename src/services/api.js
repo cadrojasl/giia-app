@@ -85,6 +85,7 @@ export const createMaterial = (data) => materialesApi.post("/api/materiales", da
 export const getMaterialesByProveedor = (proveedorId) =>
   materialesApi.get(`/api/materiales/proveedor/${proveedorId}`);
 export const getMateriales = () => materialesApi.get("/api/materiales");
+export const getMaterial = (id) => materialesApi.get(`/api/materiales/${id}`);
 export const deleteMaterial = (id) => materialesApi.delete(`/api/materiales/${id}`);
 export const getMaterialesPorRemision = (id) => remisionApi.get(`/api/remisiones/${id}/materiales`);
 
