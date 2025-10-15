@@ -58,6 +58,7 @@ import ListaProveedores from "components/MDRemisions/ListaProveedores";
 import SalidaForm from "components/MDRemisions/SalidaForm";
 import ListaMateriales from "components/MDRemisions/ListaMateriales";
 import CrearMaterial from "components/MDRemisions/CrearMaterial";
+import Inventario from "components/MDRemisions/Inventario";
 
 const routes = [
   {
@@ -123,6 +124,14 @@ const routes = [
     icon: <Icon fontSize="small">app_registration</Icon>,
     route: "/materiales",
     component: <CrearMaterial />,
+  },
+  {
+    type: "collapse",
+    name: "Inventario",
+    key: "Inventario",
+    icon: <Icon fontSize="small">inventory_2</Icon>,
+    route: "/inventario",
+    component: <Inventario />,
   },
   {
     type: "collapse",

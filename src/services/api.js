@@ -93,6 +93,7 @@ export const actualizarEstadoRemision = (id, data) =>
 
 export const incrementarStock = (data) => materialesApi.put("/api/inventario/incrementar", data);
 export const decrementarStock = (data) => materialesApi.put("/api/inventario/decrementar", data);
+export const getStock = () => materialesApi.get("/api/inventario");
 
 // ==================== ALMACEN ====================
 export const createEntrada = (data) => usersApi.post("/api/entradas", data);
