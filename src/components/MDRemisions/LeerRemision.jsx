@@ -10,6 +10,15 @@ import {
   ListItem,
   ListItemText,
   TextField,
+  Paper,
+  Divider,
+  Chip,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from "@mui/material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -26,6 +35,7 @@ import {
   decrementarStock,
   getUsuario,
 } from "services/api";
+import DefaultProjectCard from "examples/Cards/ProjectCards/DefaultProjectCard";
 
 const LeerRemisionConEstado = () => {
   const [file, setFile] = useState(null);
@@ -159,29 +169,75 @@ const LeerRemisionConEstado = () => {
             )}
 
             {remisionData && (
-              <Grid item xs={12}>
-                <MDTypography variant="h6">Datos de la Remisión:</MDTypography>
-                <Box sx={{ p: 2, border: "1px solid #ccc", borderRadius: 2 }}>
-                  {Object.entries(remisionData).map(([key, value]) => (
-                    <Typography key={key}>
-                      <strong>{key}:</strong>{" "}
-                      {typeof value === "object" ? JSON.stringify(value) : value.toString()}
-                    </Typography>
-                  ))}
-                </Box>
+              <Grid item xs={12} md={8}>
+                <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
+                  <MDTypography variant="h5" gutterBottom>
+                    Detalles de la Remisión
+                  </MDTypography>
+                  <Divider sx={{ mb: 2 }} />
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography variant="body2">
+                        <strong>ID:</strong> {remisionData.id}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Tipo:</strong> {remisionData.tipo === 1 ? "Salida" : "Entrada"}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Estado:</strong> {remisionData.estado || "N/A"}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Usuario ID:</strong> {remisionData.usuarioId}
+                      </Typography>
+                      {remisionData.proveedorId && (
+                        <Typography variant="body2">
+                          <strong>Proveedor ID:</strong> {remisionData.proveedorId}
+                        </Typography>
+                      )}
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="body2">
+                        <strong>Fecha:</strong>{" "}
+                        {remisionData.fechaCreacion
+                          ? new Date(remisionData.fechaCreacion).toLocaleString()
+                          : "No disponible"}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Observaciones:</strong> {remisionData.observaciones || "Ninguna"}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
               </Grid>
             )}
 
             {materiales.length > 0 && (
               <Grid item xs={12}>
-                <MDTypography variant="h6">Materiales:</MDTypography>
-                <List>
-                  {materiales.map((mat, index) => (
-                    <ListItem key={index}>
-                      <ListItemText primary={`ID ${mat.materialId} - cantidad ${mat.cantidad}`} />
-                    </ListItem>
-                  ))}
-                </List>
+                <MDTypography variant="h6" gutterBottom>
+                  Materiales
+                </MDTypography>
+                <TableContainer component={Paper} elevation={3} sx={{ maxWidth: 340 }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>
+                          <strong>ID Material</strong>
+                        </TableCell>
+                        <TableCell>
+                          <strong>Cantidad</strong>
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {materiales.map((mat, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{mat.materialId}</TableCell>
+                          <TableCell>{mat.cantidad}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </Grid>
             )}
 

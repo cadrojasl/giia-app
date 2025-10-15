@@ -99,9 +99,9 @@ const UsuarioForm = () => {
     if (validateForm()) {
       const data = {
         usuario: formData.username,
-        nombre: formData.nombre,
+        nombre: formData.nombre.toLowerCase().replace(/\s/g, ""),
         email: formData.correo,
-        telefono: formData.telefono,
+        //telefono: formData.telefono,
         rolId: `1`,
         fechaCreacion: new Date().toISOString().replace(/\.\d{3}Z$/, ""),
         activo: true,
