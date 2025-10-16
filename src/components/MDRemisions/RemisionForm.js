@@ -16,7 +16,7 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
-import { getProveedor, getMateriales, createRemision, generarQR } from "services/api";
+import { getProveedor, getMateriales, createRemision, generarQR, getUsuario } from "services/api";
 
 const RemisionForm = () => {
   const navigate = useNavigate();
@@ -37,9 +37,14 @@ const RemisionForm = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const proveedorRes = await getProveedor(proveedorID);
+        let proveedorRes;
+        if (rol === 1 || rol === "1") {
+          const usuarioRes = await getUsuario(user);
+          proveedorRes = { data: usuarioRes.data };
+        } else {
+          proveedorRes = await getProveedor(proveedorID);
+        }
         setProveedor(proveedorRes.data);
-
         const materialesRes = await getMateriales();
         setMateriales(materialesRes.data);
       } catch (error) {
